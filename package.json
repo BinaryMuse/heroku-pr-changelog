@@ -4,10 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
   "keywords": [],
   "author": "Michelle Tilley <michelle@michelletilley.net>",
   "license": "MIT",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "dotenv-safe": "^4.0.4",
+    "express": "^4.15.4",
+    "pr-changelog": "^0.2.6"
+  }
 }
