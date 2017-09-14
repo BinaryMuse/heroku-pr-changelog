@@ -71,7 +71,6 @@ endpoint.method('query', {
         color: 'ff0000'
       })
     } else {
-      res.json({stdout, stderr})
       respond(stdout, {
         title: `PR Changelog for ${owner}/${repo}#${start}...${end}`,
         title_link: `https://github.com/${owner}/${repo}/compare/${start}...${end}`,
