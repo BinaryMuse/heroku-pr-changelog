@@ -74,12 +74,16 @@ endpoint.method('query', {
         color: 'ff0000'
       })
     } else {
-      const {stdout, stderr} = result
-      respond(stdout, {
-        title: `PR Changelog for ${owner}/${repo}#${start}...${end}`,
-        title_link: `https://github.com/${owner}/${repo}/compare/${start}...${end}`,
-        color: '0000ff'
-      })
+      try {
+        const {stdout, stderr} = result
+        respond(`${stdout}\n\n========================\n\n${stderr}`, {
+          title: `PR Changelog for ${owner}/${repo}#${start}...${end}`,
+          title_link: `https://github.com/${owner}/${repo}/compare/${start}...${end}`,
+          color: '0000ff'
+        })
+      } catch (err) {
+        console.error(err)
+      }
     }
   })
 })
