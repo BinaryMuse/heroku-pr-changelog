@@ -68,10 +68,10 @@ endpoint.method('query', {
   console.log(`Fetching PR changelog for ${owner}/${repo}#${start}...${end}`)
   getChangelog(process.env.GITHUB_ACCESS_TOKEN, owner, repo, start, end, (err, result) => {
     if (err) {
-      respond(`Error querying PR changelog for ${owner}/${repo}#${start}...${end}:\n\n` + '```' + stderr + '```')
+      respond(`Error querying PR changelog for ${owner}/${repo}#${start}...${end}:\n\n${stderr}`)
     } else {
       const {stdout, stderr} = result
-      respond('```' + stdout + '```\n\n' + stderr)
+      respond(`${stdout}\n\n---\n\n${stderr}`)
     }
   })
 })
