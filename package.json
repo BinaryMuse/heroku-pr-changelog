@@ -13,6 +13,7 @@
   "dependencies": {
     "dotenv-safe": "^4.0.4",
     "express": "^4.15.4",
+    "hubot-rpc-gen": "^0.1.1",
     "pr-changelog": "^0.2.6"
   }
 }

@@ -1,16 +1,15 @@
 require('dotenv-safe').load()
 
 const path = require('path')
+const {spawn} = require('child_process')
 
 const express = require('express')
 const changelog = require('pr-changelog')
-const {spawn} = require('child_process')
+const crpc = require('hubot-rpc-gen')
 
 const app = express()
 
-const prChangelogPath = path.join(__dirname, 'node_modules', '.bin', 'pr-changelog')
-app.get('/:owner/:repo/:start/:end', (req, res) => {
-  const {owner, repo, start, end} = req.params
+function getChangelog(owner, repo, start, end, callback) {
   const child = spawn(prChangelogPath, ['-v', '-P', '-r', `${owner}/${repo}`, `${start}...${end}`], {
     env: Object.assign({}, process.env, {
       GITHUB_ACCESS_TOKEN: req.query.token || process.env.GITHUB_ACCESS_TOKEN
@@ -24,14 +23,16 @@ app.get('/:owner/:repo/:start/:end', (req, res) => {
     if (exited) return
     exited = true
 
-    res.status(500).json({error: 'An unknown error occurred'})
+    callback(new Error(stderr))
+    // res.status(500).json({error: 'An unknown error occurred'})
   })
 
   child.on('exit', () => {
     if (exited) return
     exited = true
 
-    res.status(200).json({stdout, stderr})
+    // res.status(200).json({stdout, stderr})
+    callback(null, {stdout, stderr})
   })
 
   child.stdout.on('data', (data) => {
@@ -40,6 +41,43 @@ app.get('/:owner/:repo/:start/:end', (req, res) => {
 
   child.stderr.on('data', (data) => {
     stderr += data.toString()
+  })
+}
+
+const prChangelogPath = path.join(__dirname, 'node_modules', '.bin', 'pr-changelog')
+app.get('/:owner/:repo/:start/:end', (req, res) => {
+  const {owner, repo, start, end} = req.params
+  getChangelog(owner, repo, start, end, (err, {stdout, stderr}) => {
+    if (err) {
+      res.status(500).json({error: err.message})
+    } else {
+      res.json({stdout, stderr})
+    }
+  })
+})
+
+const endpoint = crpc.endpoint(app, 'pr-changelog', '/_chatops')
+endpoint.method('query', {
+  help: 'query <owner>/<repo> <start> <end>',
+  regex: 'query (?<owner>.+)/(?<repo>.+) (?<start>.+) (?<end>.+)',
+  params: ['owner', 'repo', 'start', 'end']
+}, ({user, method, params, room_id}, respond) => {
+  const {owner, repo, start, end} = params
+
+  getChangelog(owner, repo, start, end, (err, {stdout, stderr}) => {
+    if (err) {
+      respond(stderr, {
+        title: 'Error querying that PR changelog',
+        color: 'ff0000'
+      })
+    } else {
+      res.json({stdout, stderr})
+      respond(stdout, {
+        title: `PR Changelog for ${owner}/${repo}#${start}...${end}`,
+        title_link: `https://github.com/${owner}/${repo}/compare/${start}...${end}`,
+        color: '0000ff'
+      })
+    }
   })
 })
 
