@@ -79,15 +79,34 @@ endpoint.method('query', {
       try {
         const {stdout, stderr} = result
         console.log("Respinding with data", stdout, stderr)
-        respond(`${stdout}\n\n========================\n\n${stderr}`, {
-          title: `PR Changelog for ${owner}/${repo}#${start}...${end}`,
-          title_link: `https://github.com/${owner}/${repo}/compare/${start}...${end}`,
-          color: '0000ff'
-        })
+        respond(`${stdout}\n\n========================\n\n${stderr}`)
       } catch (e) {
         console.error(e)
       }
     }
+  })
+})
+
+endpoint.method('test', {
+  help: 'test - Just testing',
+  regex: 'test',
+  params: []
+}, (params, respond) => {
+  respond('Hello!')
+})
+
+endpoint.method('gen', {
+  help: 'me <query> <color> - Look for a GitHub user',
+  regex: 'me (?<query>.+) (?<color>.+)',
+  params: ['query', 'color']
+}, ({user, method, params, room_id}, respond) => {
+  setTimeout(() => {
+    respond(`Hello to ${params.query}, asked for by ${user} in room ${room_id}`, {
+      title: params.query,
+      title_link: `https://github.com/${params.query}`,
+      image_url: `https://github.com/${params.query}.png`,
+      color: params.color
+    })
   })
 })
 
