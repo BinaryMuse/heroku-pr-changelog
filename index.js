@@ -71,7 +71,7 @@ endpoint.method('query', {
       respond(`Error querying PR changelog for ${owner}/${repo}#${start}...${end}:\n\n` + '```' + stderr + '```')
     } else {
       const {stdout, stderr} = result
-      respond('```' + stdout.replace(/\[/g, '\\[') + '```\n\n' + stderr)
+      respond('```' + stdout + '```\n\n' + stderr)
     }
   })
 })
