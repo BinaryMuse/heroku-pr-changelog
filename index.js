@@ -62,27 +62,30 @@ endpoint.method('query', {
   help: 'query <owner>/<repo> <start> <end>',
   regex: 'query (?<owner>.+)/(?<repo>.+) (?<start>.+) (?<end>.+)',
   params: ['owner', 'repo', 'start', 'end']
-}, ({user, method, params, room_id}, respond) => {
+}, ({params}, respond) => {
   const {owner, repo, start, end} = params
 
   console.log(`Fetching PR changelog for ${owner}/${repo}#${start}...${end}`)
   getChangelog(process.env.GITHUB_ACCESS_TOKEN, owner, repo, start, end, (err, result) => {
     console.log('Fetched')
     if (err) {
-      respond(stderr, {
-        title: 'Error querying that PR changelog',
-        color: 'ff0000'
-      })
+      try {
+        console.log("Responding with error", err)
+        respond('Error querying that PR changelog:\n\n' + stderr)
+      } catch (e) {
+        console.error(e)
+      }
     } else {
       try {
         const {stdout, stderr} = result
+        console.log("Respinding with data", stdout, stderr)
         respond(`${stdout}\n\n========================\n\n${stderr}`, {
           title: `PR Changelog for ${owner}/${repo}#${start}...${end}`,
           title_link: `https://github.com/${owner}/${repo}/compare/${start}...${end}`,
           color: '0000ff'
         })
-      } catch (err) {
-        console.error(err)
+      } catch (e) {
+        console.error(e)
       }
     }
   })
