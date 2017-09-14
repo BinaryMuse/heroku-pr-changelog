@@ -52,7 +52,8 @@ app.get('/:owner/:repo/:start/:end', (req, res) => {
       res.status(500).json({error: err.message})
     } else {
       const {stdout, stderr} = result
-      res.json({stdout, stderr})
+      // res.json({stdout, stderr})
+      res.end(`<pre>${stdout}</pre><hr /><pre>${stderr}</pre>`)
     }
   })
 })
@@ -71,7 +72,8 @@ endpoint.method('query', {
       respond(`Error querying PR changelog for ${owner}/${repo}#${start}...${end}:\n\n${stderr}`)
     } else {
       const {stdout, stderr} = result
-      respond(`${stdout}\n\n---\n\n${stderr}`)
+      const link = `https://pr-changelog.herokuapp.com/${owner}/${repo}/${start}/${end}`
+      respond(`${stdout}\n\n---\n\n${stderr}\n\n---\n\n[Formatted version](${link})`)
     }
   })
 })
