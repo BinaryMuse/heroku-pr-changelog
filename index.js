@@ -9,10 +9,10 @@ const crpc = require('hubot-rpc-gen')
 
 const app = express()
 
-function getChangelog(owner, repo, start, end, callback) {
+function getChangelog(token, owner, repo, start, end, callback) {
   const child = spawn(prChangelogPath, ['-v', '-P', '-r', `${owner}/${repo}`, `${start}...${end}`], {
     env: Object.assign({}, process.env, {
-      GITHUB_ACCESS_TOKEN: req.query.token || process.env.GITHUB_ACCESS_TOKEN
+      GITHUB_ACCESS_TOKEN: token
     })
   })
 
@@ -24,14 +24,12 @@ function getChangelog(owner, repo, start, end, callback) {
     exited = true
 
     callback(new Error(stderr))
-    // res.status(500).json({error: 'An unknown error occurred'})
   })
 
   child.on('exit', () => {
     if (exited) return
     exited = true
 
-    // res.status(200).json({stdout, stderr})
     callback(null, {stdout, stderr})
   })
 
@@ -47,7 +45,7 @@ function getChangelog(owner, repo, start, end, callback) {
 const prChangelogPath = path.join(__dirname, 'node_modules', '.bin', 'pr-changelog')
 app.get('/:owner/:repo/:start/:end', (req, res) => {
   const {owner, repo, start, end} = req.params
-  getChangelog(owner, repo, start, end, (err, {stdout, stderr}) => {
+  getChangelog(req.token || process.env.GITHUB_ACCESS_TOKEN, owner, repo, start, end, (err, {stdout, stderr}) => {
     if (err) {
       res.status(500).json({error: err.message})
     } else {
@@ -64,7 +62,7 @@ endpoint.method('query', {
 }, ({user, method, params, room_id}, respond) => {
   const {owner, repo, start, end} = params
 
-  getChangelog(owner, repo, start, end, (err, {stdout, stderr}) => {
+  getChangelog(token || process.env.GITHUB_ACCESS_TOKEN, owner, repo, start, end, (err, {stdout, stderr}) => {
     if (err) {
       respond(stderr, {
         title: 'Error querying that PR changelog',
