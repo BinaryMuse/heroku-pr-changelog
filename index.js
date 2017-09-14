@@ -62,7 +62,7 @@ endpoint.method('query', {
 }, ({user, method, params, room_id}, respond) => {
   const {owner, repo, start, end} = params
 
-  getChangelog(token || process.env.GITHUB_ACCESS_TOKEN, owner, repo, start, end, (err, {stdout, stderr}) => {
+  getChangelog(process.env.GITHUB_ACCESS_TOKEN, owner, repo, start, end, (err, {stdout, stderr}) => {
     if (err) {
       respond(stderr, {
         title: 'Error querying that PR changelog',
