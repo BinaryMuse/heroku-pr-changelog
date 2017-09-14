@@ -34,10 +34,12 @@ function getChangelog(token, owner, repo, start, end, callback) {
   })
 
   child.stdout.on('data', (data) => {
+    console.log('stdout: ' + data.toString())
     stdout += data.toString()
   })
 
   child.stderr.on('data', (data) => {
+    console.log('stderr: ' + data.toString())
     stderr += data.toString()
   })
 }
@@ -45,10 +47,11 @@ function getChangelog(token, owner, repo, start, end, callback) {
 const prChangelogPath = path.join(__dirname, 'node_modules', '.bin', 'pr-changelog')
 app.get('/:owner/:repo/:start/:end', (req, res) => {
   const {owner, repo, start, end} = req.params
-  getChangelog(req.token || process.env.GITHUB_ACCESS_TOKEN, owner, repo, start, end, (err, {stdout, stderr}) => {
+  getChangelog(req.token || process.env.GITHUB_ACCESS_TOKEN, owner, repo, start, end, (err, result) => {
     if (err) {
       res.status(500).json({error: err.message})
     } else {
+      const {stdout, stderr} = result
       res.json({stdout, stderr})
     }
   })
@@ -62,13 +65,16 @@ endpoint.method('query', {
 }, ({user, method, params, room_id}, respond) => {
   const {owner, repo, start, end} = params
 
-  getChangelog(process.env.GITHUB_ACCESS_TOKEN, owner, repo, start, end, (err, {stdout, stderr}) => {
+  console.log(`Fetching PR changelog for ${owner}/${repo}#${start}...${end}`)
+  getChangelog(process.env.GITHUB_ACCESS_TOKEN, owner, repo, start, end, (err, result) => {
+    console.log('Fetched')
     if (err) {
       respond(stderr, {
         title: 'Error querying that PR changelog',
         color: 'ff0000'
       })
     } else {
+      const {stdout, stderr} = result
       respond(stdout, {
         title: `PR Changelog for ${owner}/${repo}#${start}...${end}`,
         title_link: `https://github.com/${owner}/${repo}/compare/${start}...${end}`,
